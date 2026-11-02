@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Раскрой Pro</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#f3f4f8;--c:#fff;--c2:#eceef6;--tx:#171a2e;--mu:#767a95;--ac:#e8590c;--ln:#d8dbeb;--ok:#2f9e44;--bad:#e03131;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10111d;--c:#1a1c30;--c2:#272a46;--tx:#eef0ff;--mu:#9a9ec4;--ln:#353a63;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#10111d;--c:#1a1c30;--c2:#272a46;--tx:#eef0ff;--mu:#9a9ec4;--ln:#353a63;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:640px;margin:0 auto;padding:12px 12px 90px;animation:fi .25s}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}}
+h1{font-size:21px;margin:4px 0}h2{font-size:16px;margin:2px 0 8px}
+.card{background:var(--c);border-radius:16px;padding:14px;margin:10px 0;box-shadow:0 1px 4px #0002}
+small{color:var(--mu);display:block;margin-bottom:2px;font-size:12px}
+button,select{font:inherit;border:0;border-radius:12px;padding:10px 13px;background:var(--c2);color:var(--tx);cursor:pointer;transition:transform .1s}
+button:active{transform:scale(.95)}
+.p{background:var(--ac);color:#fff;font-weight:700}.on{background:var(--ac);color:#fff}.dg{color:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}.sp{justify-content:space-between}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.st{text-align:center}.st div{background:var(--c);border-radius:14px;padding:12px 4px}.st b{display:block;font-size:21px}
+input,select,textarea{width:100%;font:inherit;padding:10px;border-radius:10px;border:1.5px solid var(--ln);background:var(--bg);color:var(--tx)}
+input[type=color]{padding:2px;height:42px}
+.pt{background:var(--c2);padding:10px;border-radius:14px;margin:8px 0}.pt input{background:var(--c)}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;gap:4px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0px));background:var(--c);box-shadow:0 -2px 10px #0002}
+.tabs button{flex:1;padding:7px 2px;font-size:11px;background:none}.tabs .on{background:none;color:var(--ac);font-weight:700}
+.sc{overflow:auto;border-radius:8px}.ls{font-size:13px;line-height:1.7;margin-top:6px}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.tb td{padding:3px 0}.tb td:last-child{text-align:right;font-weight:700}
+.er{border:2px solid var(--bad)}.ok{color:var(--ok)}
+@media print{.np,.tabs{display:none!important}body{background:#fff;color:#000}.card{box-shadow:none;break-inside:avoid;border:1px solid #ccc}.shc{break-after:page}:root{--c:#fff;--c2:#eee;--tx:#000;--mu:#555}}
+</style></head><body><div id="app"></div>
+<script>
+const $=s=>document.querySelector(s),uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const D={calc:['Расчёт','Ҳисоб','Calc'],proj:['Проекты','Лоиҳаҳо','Projects'],mats:['Материалы','Маводҳо','Materials'],set:['Настройки','Танзимот','Settings'],pname:['Название проекта','Номи лоиҳа','Project name'],mat:['Материал','Мавод','Material'],parts:['Детали','Қисмҳо','Parts'],name:['Название','Ном','Name'],len:['Длина','Дарозӣ','Length'],wid:['Ширина','Паҳноӣ','Width'],qty:['Кол-во','Шумора','Qty'],grain:['Текстура вдоль листа (не поворачивать)','Нақш мувозии варақа (нагардон)','Grain along sheet (no rotation)'],e1:['Кромка по длине (0–2)','Кромка бо дарозӣ (0–2)','Edge on length (0–2)'],e2:['Кромка по ширине (0–2)','Кромка бо паҳноӣ (0–2)','Edge on width (0–2)'],add:['Добавить деталь','Иловаи қисм','Add part'],run:['Рассчитать раскрой','Ҳисоби буриш','Calculate'],sheets:['Листов','Варақ','Sheets'],used:['Использовано','Истифода','Used'],waste:['Отход','Партов','Waste'],cost:['Смета','Хароҷот','Estimate'],matc:['Материал','Мавод','Material'],cutc:['Распил','Буриш','Cutting'],edgec:['Кромка','Кромка','Edging'],total:['Итого','Ҷамъ','Total'],cutp:['Цена распила за 1 м','Нархи буриш барои 1 м','Cutting price per m'],edgep:['Цена кромки за 1 м','Нархи кромка барои 1 м','Edge price per m'],legend:['Детали','Қисмҳо','Parts'],rem:['Остатки','Боқимонда','Offcuts'],nofit:['Не помещается в лист','Ба варақа намеғунҷад','Does not fit'],inv:['Проверь размеры деталей','Андозаҳоро санҷед','Check part sizes'],best:['Лучший найденный вариант (проверено стратегий: ','Варианти беҳтарини ёфтшуда (стратегияҳо: ','Best found layout (strategies checked: '],pdf:['Печать / PDF','Чоп / PDF','Print / PDF'],xls:['Excel','Excel','Excel'],copy:['Копировать','Нусха','Copy'],copied:['Скопировано ✓','Нусха шуд ✓','Copied ✓'],newp:['Новый проект','Лоиҳаи нав','New project'],open:['Открыть','Кушодан','Open'],dup:['Копия','Нусха','Copy'],del:['Удалить','Нест кардан','Delete'],sure:['Точно удалить?','Боварӣ?','Sure?'],sheet:['Лист','Варақа','Sheet'],price:['Цена листа','Нархи варақа','Sheet price'],th:['Толщина, мм','Ғафсӣ, мм','Thickness, mm'],kerf:['Пропил, мм','Арра, мм','Kerf, mm'],trim:['Отступ от края, мм','Канора, мм','Edge margin, mm'],color:['Декор','Ранг','Color'],addm:['Добавить материал','Иловаи мавод','Add material'],lang:['Язык','Забон','Language'],theme:['Тема','Мавзӯъ','Theme'],tl:[['Авто','Светлая','Тёмная'],['Худкор','Равшан','Торик'],['Auto','Light','Dark']],au:['Площадь деталей','Масоҳати қисмҳо','Parts area'],aw:['Площадь отходов','Масоҳати партов','Waste area'],ok:['Проверка схемы: ошибок нет','Санҷиши схема: хато нест','Layout check: no errors'],bad:['Ошибка проверки схемы!','Хатои санҷиши схема!','Layout check failed!'],cl:['Длина реза ≈','Дарозии буриш ≈','Cut length ≈'],el:['Длина кромки','Дарозии кромка','Edge length'],pr:['Печать работает через «Сохранить как PDF».','Чоп тавассути «Захира ҳамчун PDF».','Print via “Save as PDF”.'],se:['Не удалось сохранить данные!','Захира нашуд!','Could not save data!'],emp:['Добавь хотя бы одну деталь','Ақаллан як қисм илова кун','Add at least one part'],note:['Результат — лучший найденный вариант, а не гарантированный оптимум.','Натиҷа — варианти беҳтарини ёфтшуда, на оптимуми кафолатнок.','The result is the best layout found, not a guaranteed optimum.'],pcs:['дет.','дона','pcs','']};
+let G={lang:'ru',theme:'auto',tab:'calc',mats:[{id:'m1',name:'ЛДСП',L:2750,W:1830,th:16,price:0,kerf:4,trim:10,color:'#c9a77c'},{id:'m2',name:'МДФ',L:2800,W:2070,th:16,price:0,kerf:4,trim:10,color:'#b08968'},{id:'m3',name:'Фанера',L:2440,W:1220,th:12,price:0,kerf:3,trim:5,color:'#e0c49a'},{id:'m4',name:'ДВП',L:2745,W:1700,th:3,price:0,kerf:3,trim:5,color:'#8d6e63'}],projects:[],cur:null};
+try{Object.assign(G,JSON.parse(localStorage.getItem('rk2')||'null')||{})}catch(e){try{Object.assign(G,JSON.parse(localStorage.getItem('rk2_bak')||'null')||{})}catch(x){}}
+const LI=()=>({ru:0,tg:1,en:2}[G.lang]),t=k=>D[k][LI()];
+const demo=()=>[{n:'Боковина',l:2100,w:550,q:2,g:true,e1:2,e2:0},{n:'Верх/низ',l:800,w:550,q:2,g:false,e1:1,e2:0},{n:'Полка',l:764,w:530,q:3,g:false,e1:1,e2:0},{n:'Дверь',l:1000,w:396,q:2,g:true,e1:2,e2:2}];
+function newP(parts){const p={id:uid(),name:t('newp')+' '+(G.projects.length+1),upd:Date.now(),mat:G.mats[0].id,parts:parts||demo(),cutP:0,edgeP:0};G.projects.unshift(p);G.cur=p.id;return p}
+if(!G.projects.length){let o=null;try{o=JSON.parse(localStorage.getItem('cut'))}catch(e){}
+  const p=newP(o&&o.parts?o.parts.map(x=>({n:String(x.n||''),l:+x.l||0,w:+x.w||0,q:+x.q||0,g:!!x.g,e1:0,e2:0})):null);if(o&&o.L){const m=G.mats.find(x=>x.L===o.L&&x.W===o.W);if(m)p.mat=m.id}}
+const cp=()=>G.projects.find(p=>p.id===G.cur)||G.projects[0],cm=p=>G.mats.find(m=>m.id===p.mat)||G.mats[0];
+let st;function save(){clearTimeout(st);st=setTimeout(()=>{try{const o=localStorage.getItem('rk2');if(o)localStorage.setItem('rk2_bak',o);localStorage.setItem('rk2',JSON.stringify(G))}catch(e){alert(t('se'))}},250)}
+/*ALGO*/
+const RULES=[(a,b)=>a<=b,(a,b)=>a>b,(a,b,w,h)=>w*b<=h*a,(a,b,w,h)=>w*b>h*a];
+function pack(items,rule,IW,IH,K){
+  const sheets=[];
+  const find=(s,it)=>{let b=null;s.free.forEach((f,fi)=>{for(const r of(it.g?[0]:[0,1])){const w=(r?it.h:it.w)+K,h=(r?it.w:it.h)+K;if(w<=f.w&&h<=f.h){const sc=Math.min(f.w-w,f.h-h);if(!b||sc<b.sc)b={fi,r,w,h,sc}}}});return b};
+  for(const it of items){
+    let best=null,bs=null;
+    for(const s of sheets){const b=find(s,it);if(b&&(!best||b.sc<best.sc)){best=b;bs=s}}
+    if(!best){bs={free:[{x:0,y:0,w:IW,h:IH}],pl:[]};sheets.push(bs);best=find(bs,it)}
+    const f=bs.free.splice(best.fi,1)[0],{w,h,r}=best;
+    bs.pl.push({x:f.x,y:f.y,w:w-K,h:h-K,i:it.i,r});
+    const hz=rule(f.w-w,f.h-h,w,h),a={x:f.x+w,y:f.y,w:f.w-w,h:hz?h:f.h},b2={x:f.x,y:f.y+h,w:hz?f.w:w,h:f.h-h};
+    [a,b2].forEach(q=>{if(q.w>K&&q.h>K)bs.free.push(q)})}
+  return sheets}
+function validate(sheets,L,W,tr,K){let e=0;sheets.forEach(s=>{const a=s.pl.map(p=>({x:tr+p.x,y:tr+p.y,w:p.w,h:p.h}));
+  a.forEach((p,i)=>{if(p.w<=0||p.h<=0||p.x<tr||p.y<tr||p.x+p.w>L-tr||p.y+p.h>W-tr)e++;
+    for(let j=i+1;j<a.length;j++){const q=a[j];if(!(p.x+p.w+K<=q.x||q.x+q.w+K<=p.x||p.y+p.h+K<=q.y||q.y+q.h+K<=p.y))e++}})});return e}
+function solve(parts,L,W,K,tr){
+  const IW=L-2*tr+K,IH=W-2*tr+K,items=[],bad=[];
+  parts.forEach((p,i)=>{if(!(p.l>0&&p.w>0&&p.q>0))return;
+    if(!((p.l+K<=IW&&p.w+K<=IH)||(!p.g&&p.w+K<=IW&&p.l+K<=IH))){bad.push(i);return}
+    for(let q=0;q<p.q;q++)items.push({i,w:p.l,h:p.w,g:p.g})});
+  let best=null,tried=0,fails=0;
+  const run=(a,rl)=>{const r=pack(a,rl,IW,IH,K);tried++;if(validate(r,L,W,tr,K)){fails++;return}
+    const sc=r.length*1e9+Math.min(...r.map(s=>s.pl.reduce((x,p)=>x+p.w*p.h,0)));if(!best||sc<best.sc)best={s:r,sc}};
+  if(items.length){[x=>x.w*x.h,x=>Math.max(x.w,x.h),x=>x.w,x=>x.h].forEach(f=>{const a=[...items].sort((x,y)=>f(y)-f(x));RULES.forEach(rl=>run(a,rl))});
+    for(let n=0;n<150;n++)run([...items].sort(()=>Math.random()-.5),RULES[n%4])}
+  return{s:best?best.s:[],bad,tried,fails,n:items.length}}
+/*END*/
+let res=null,zoom=1,pend=null,cpTxt='';
+const M=n=>(Math.round(n*100)/100).toLocaleString(),m2=n=>(n/1e6).toFixed(2);
+function calc(){
+  const p=cp(),m=cm(p),parts=p.parts.map(x=>({...x,l:+x.l||0,w:+x.w||0,q:+x.q||0,e1:+x.e1||0,e2:+x.e2||0}));
+  const r=solve(parts,m.L,m.W,m.kerf,m.trim);
+  r.m={...m};r.parts=parts;r.name=p.name;r.cutP=+p.cutP||0;r.edgeP=+p.edgeP||0;
+  let cl=0,el=0;parts.forEach(x=>{if(x.l>0&&x.w>0&&x.q>0){cl+=(x.l+x.w)*x.q/1000;el+=(x.e1*x.l+x.e2*x.w)*x.q/1000}});
+  r.cl=cl;r.el=el;r.matC=r.s.length*m.price;r.cutC=cl*r.cutP;r.edgeC=el*r.edgeP;r.tot=r.matC+r.cutC+r.edgeC;
+  r.used=r.s.reduce((a,s)=>a+s.pl.reduce((b,q)=>b+q.w*q.h,0),0);r.area=r.s.length*m.L*m.W;
+  r.empty=!r.n&&!r.bad.length;res=r}
+const grp=s=>{const o={};s.pl.forEach(q=>{const k=q.i+'|'+q.r+'|'+q.w+'|'+q.h;(o[k]=o[k]||{i:q.i,r:q.r,w:q.w,h:q.h,c:0}).c++});return Object.values(o).sort((a,b)=>a.i-b.i)};
+const hue=i=>`hsl(${(i*67)%360} 65% 66%)`;
+const rems=(s,K)=>s.free.map(f=>({w:f.w-K,h:f.h-K,x:f.x,y:f.y})).filter(f=>f.w>=100&&f.h>=100).sort((a,b)=>b.w*b.h-a.w*a.h);
+function svg(s){
+  const{L,W,trim:tr,kerf:K}=res.m,f=L/55,sw=L/900;
+  let h=`<svg viewBox="0 0 ${L} ${W}" style="width:${zoom*100}%;display:block;background:var(--c2)"><rect x="${tr}" y="${tr}" width="${L-2*tr}" height="${W-2*tr}" fill="none" stroke="var(--mu)" stroke-width="${sw}" stroke-dasharray="${sw*4}"/>`;
+  rems(s,K).forEach(q=>{h+=`<rect x="${tr+q.x}" y="${tr+q.y}" width="${q.w}" height="${q.h}" fill="none" stroke="var(--mu)" stroke-width="${sw}" stroke-dasharray="${sw*3} ${sw*3}" opacity=".7"/>`});
+  s.pl.forEach(p=>{const x=tr+p.x,y=tr+p.y,big=p.h>f*3.2&&p.w>f*6,fs=Math.min(f,p.h*.4,p.w*.4),g=res.parts[p.i].g;
+    h+=`<rect x="${x}" y="${y}" width="${p.w}" height="${p.h}" fill="${hue(p.i)}" stroke="#222" stroke-width="${sw}"/>`;
+    if(Math.min(p.w,p.h)>f*1.2)h+=`<text x="${x+p.w/2}" y="${y+p.h/2+(big?0:fs*.35)}" font-size="${fs}" text-anchor="middle" fill="#111" font-weight="700">${p.i+1}${p.r?'↻':''}</text>`+(big?`<text x="${x+p.w/2}" y="${y+p.h/2+fs*1.05}" font-size="${fs*.8}" text-anchor="middle" fill="#111">${p.w}×${p.h}</text>`:'');
+    if(g&&p.w>f*4&&p.h>f*1.6)h+=`<text x="${x+fs*.3}" y="${y+fs}" font-size="${fs*.9}" fill="#111">↔</text>`});
+  return h+'</svg>'}
+function txt(){const r=res;let o=`${r.name} · ${r.m.name} ${r.m.L}×${r.m.W}×${r.m.th}\n`;
+  r.s.forEach((s,n)=>{o+=`\n${t('sheet')} ${n+1}\n`;grp(s).forEach(g=>o+=`${g.i+1}. ${r.parts[g.i].n} ${g.w}×${g.h}${g.r?' ↻':''} ×${g.c}\n`)});
+  return o+`\n${t('sheets')}: ${r.s.length}\n${t('total')}: ${M(r.tot)}\n`}
+function dl(name,type,body){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([body],{type}));a.download=name;document.body.appendChild(a);a.click();a.remove()}
+function xls(){const r=res,td=(...c)=>'<tr>'+c.map(x=>`<td>${esc(x)}</td>`).join('')+'</tr>';
+  let h=`<html><head><meta charset="utf-8"></head><body><table border="1">`+td(r.name,r.m.name,r.m.L+'×'+r.m.W+'×'+r.m.th)+td('#',t('name'),t('len'),t('wid'),t('qty'),'↔');
+  r.parts.forEach((p,i)=>h+=td(i+1,p.n,p.l,p.w,p.q,p.g?'✓':''));
+  r.s.forEach((s,n)=>{h+=td('')+td(t('sheet')+' '+(n+1));grp(s).forEach(g=>h+=td(g.i+1,r.parts[g.i].n,g.w,g.h,g.c,g.r?'↻':''))});
+  h+=td('')+td(t('sheets'),r.s.length)+td(t('au'),m2(r.used))+td(t('aw'),m2(r.area-r.used))+td(t('matc'),r.matC)+td(t('cutc'),r.cutC)+td(t('edgec'),r.edgeC)+td(t('total'),r.tot);
+  dl(r.name+'.xls','application/vnd.ms-excel',h+'</table></body></html>')}
+function resV(){
+  const r=res;if(!r)return '';if(r.empty)return `<div class="card">${t('emp')}</div>`;
+  const n=r.s.length;let h='';
+  if(r.bad.length)h+=`<div class="card er">⚠️ ${t('nofit')}: ${r.bad.map(i=>esc(r.parts[i].n)+' '+r.parts[i].l+'×'+r.parts[i].w).join(', ')}</div>`;
+  h+=`<div class="g3 st"><div><b>${n}</b><small>${t('sheets')}</small></div><div><b>${n?Math.round(r.used/r.area*100):0}%</b><small>${t('used')}</small></div><div><b>${n?Math.round((1-r.used/r.area)*100):0}%</b><small>${t('waste')}</small></div></div>
+  <div class="card"><h2>💰 ${t('cost')}</h2><table class="tb" style="width:100%"><tr><td>${t('matc')} (${n}×${M(r.m.price)})</td><td>${M(r.matC)}</td></tr><tr><td>${t('cutc')} (${t('cl')} ${M(r.cl)} м)</td><td>${M(r.cutC)}</td></tr><tr><td>${t('edgec')} (${t('el')} ${M(r.el)} м)</td><td>${M(r.edgeC)}</td></tr><tr><td><b>${t('total')}</b></td><td style="font-size:18px;color:var(--ac)">${M(r.tot)}</td></tr><tr><td>${t('au')}</td><td>${m2(r.used)} м²</td></tr><tr><td>${t('aw')}</td><td>${m2(r.area-r.used)} м²</td></tr></table></div>
+  <div class="row np"><small style="margin:0">🔍</small>${[1,1.5,2,3].map(z=>`<button data-a="z" data-v="${z}" class="${zoom===z?'on':''}">×${z}</button>`).join('')}</div>`;
+  r.s.forEach((s,k)=>{const u=s.pl.reduce((a,p)=>a+p.w*p.h,0),rm=rems(s,r.m.kerf).slice(0,3);
+    h+=`<div class="card shc"><h2>${t('sheet')} ${k+1} · ${Math.round(u/(r.m.L*r.m.W)*100)}%</h2><div class="sc">${svg(s)}</div><div class="ls">${grp(s).map(g=>`<span class="sw" style="background:${hue(g.i)}"></span><b>${g.i+1}</b> ${esc(r.parts[g.i].n)} — ${g.w}×${g.h}${g.r?' ↻':''} ×${g.c}`).join('<br>')}${rm.length?`<br><small>${t('rem')}: ${rm.map(q=>Math.round(q.w)+'×'+Math.round(q.h)).join(' · ')}</small>`:''}</div></div>`});
+  return h+`<small>↔ ${t('grain')}. ↻ 90°. ${t('note')}</small><small>${t('best')}${r.tried}). <span class="${r.fails?'dg':'ok'}">${t(r.fails?'bad':'ok')}</span></small>
+  <div class="row np"><button data-a="pdf">🖨 ${t('pdf')}</button><button data-a="xls">📊 ${t('xls')}</button><button data-a="cp">📋 ${t('copy')}</button></div><small class="np">${t('pr')}</small>`}
+const nf=(f,l,v,a)=>`<label><small>${t(l)}</small><input type="number" inputmode="decimal" min="0" data-f="${f}" ${a||''} value="${v}"></label>`;
+function calcV(){
+  const p=cp(),m=cm(p);
+  return `<h1>🪚 Раскрой Pro</h1><div class="card np"><label><small>${t('pname')}</small><input type="text" maxlength="60" data-f="name" value="${esc(p.name)}"></label>
+  <label><small>${t('mat')}</small><select data-f="mat">${G.mats.map(x=>`<option value="${x.id}" ${x.id===m.id?'selected':''}>${esc(x.name)} ${x.L}×${x.W}×${x.th}</option>`).join('')}</select></label>
+  <small>${t('kerf')}: ${m.kerf} · ${t('trim')}: ${m.trim} · ${t('price')}: ${M(m.price)}</small></div>
+  <div class="card np"><h2>${t('parts')}</h2>${p.parts.map((x,i)=>`<div class="pt"><div class="row"><label style="flex:1"><small>${t('name')}</small><input type="text" maxlength="40" data-i="${i}" data-f="n" value="${esc(x.n)}"></label><button class="dg" data-a="del" data-v="${i}">✕</button></div>
+  <div class="g3">${['l','w','q'].map(f=>`<label><small>${t({l:'len',w:'wid',q:'qty'}[f])}</small><input type="number" inputmode="numeric" min="0" data-i="${i}" data-f="${f}" value="${x[f]}"></label>`).join('')}</div>
+  <div class="g2" style="margin-top:6px">${['e1','e2'].map(f=>`<label><small>${t(f)}</small><input type="number" inputmode="numeric" min="0" max="2" data-i="${i}" data-f="${f}" value="${x[f]}"></label>`).join('')}</div>
+  <button data-a="gr" data-v="${i}" class="${x.g?'on':''}" style="width:100%;margin-top:6px">${x.g?'🔒':'🔓'} ${t('grain')}</button></div>`).join('')}
+  <button data-a="add" style="width:100%">＋ ${t('add')}</button></div>
+  <div class="card np g2">${nf('cutP','cutp',p.cutP)}${nf('edgeP','edgep',p.edgeP)}</div>
+  <button class="p np" style="width:100%;font-size:17px;padding:14px" data-a="run">🧮 ${t('run')}</button><div id="res">${resV()}</div>`}
+function projV(){
+  return `<div class="row sp"><h1>🗂 ${t('proj')}</h1><button class="p" data-a="np">＋ ${t('newp')}</button></div>`+G.projects.map(p=>`<div class="card"><b>${esc(p.name)}</b>${p.id===G.cur?' ✅':''}<br><small>${new Date(p.upd).toLocaleString()} · ${esc(cm(p).name)} · ${p.parts.length} ${t('pcs')}</small>
+  <div class="row"><button data-a="op" data-v="${p.id}">${t('open')}</button><button data-a="dp" data-v="${p.id}">${t('dup')}</button><button class="dg" data-a="xp" data-v="${p.id}">${pend===p.id?t('sure'):t('del')}</button></div></div>`).join('')}
+function matV(){
+  return `<div class="row sp"><h1>🧱 ${t('mats')}</h1><button class="p" data-a="am">＋</button></div>`+G.mats.map(m=>`<div class="card"><div class="row"><label style="flex:1"><small>${t('name')}</small><input type="text" maxlength="40" data-m="${m.id}" data-f="name" value="${esc(m.name)}"></label><label style="width:70px"><small>${t('color')}</small><input type="color" data-m="${m.id}" data-f="color" value="${m.color}"></label></div>
+  <div class="g3">${[['L','len',m.L],['W','wid',m.W],['th','th',m.th],['price','price',m.price],['kerf','kerf',m.kerf],['trim','trim',m.trim]].map(a=>`<label><small>${t(a[1])}</small><input type="number" inputmode="decimal" min="0" data-m="${m.id}" data-f="${a[0]}" value="${a[2]}"></label>`).join('')}</div>
+  <div class="row"><button class="dg" data-a="dm" data-v="${m.id}">🗑 ${t('del')}</button></div></div>`).join('')}
+const setV=()=>`<h1>⚙️ ${t('set')}</h1><div class="card"><small>${t('lang')}</small><div class="row">${[['ru','🇷🇺 RU'],['tg','🇹🇯 TJ'],['en','🇬🇧 EN']].map(l=>`<button data-a="lang" data-v="${l[0]}" class="${G.lang===l[0]?'on':''}">${l[1]}</button>`).join('')}</div>
+<small>${t('theme')}</small><div class="row">${['auto','light','dark'].map((x,i)=>`<button data-a="th" data-v="${x}" class="${G.theme===x?'on':''}">${t('tl')[i]}</button>`).join('')}</div></div><small>${t('note')}</small>`;
+function R(){
+  document.documentElement.lang=G.lang;
+  if(G.theme==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.dataset.theme=G.theme;
+  $('#app').innerHTML={calc:calcV,proj:projV,mats:matV,set:setV}[G.tab]()+`<div class="tabs">${[['calc','🧮'],['proj','🗂'],['mats','🧱'],['set','⚙️']].map(x=>`<button data-a="tab" data-v="${x[0]}" class="${G.tab===x[0]?'on':''}">${x[1]}<br>${t(x[0])}</button>`).join('')}</div>`}
+const lim={l:1e4,w:1e4,q:500,e1:2,e2:2,L:1e4,W:1e4,th:100,price:1e9,kerf:20,trim:100,cutP:1e9,edgeP:1e9};
+$('#app').addEventListener('input',e=>{
+  const el=e.target,f=el.dataset.f;if(!f)return;let v=el.value;
+  if(el.type==='number')v=Math.min(lim[f]??1e9,Math.max(0,+v||0));
+  const p=cp();
+  if(el.dataset.i!==undefined)p.parts[el.dataset.i][f]=v;
+  else if(el.dataset.m!==undefined)G.mats.find(m=>m.id===el.dataset.m)[f]=v;
+  else p[f]=v;
+  p.upd=Date.now();res=null;const r=$('#res');if(r)r.innerHTML='';save()});
+$('#app').addEventListener('change',e=>{if(e.target.tagName==='SELECT'){res=null;R()}});
+$('#app').addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,p=cp();
+  if(a==='tab'){G.tab=v;pend=null}
+  else if(a==='lang')G.lang=v;
+  else if(a==='th')G.theme=v;
+  else if(a==='add'){p.parts.push({n:String(p.parts.length+1),l:600,w:400,q:1,g:false,e1:0,e2:0});res=null}
+  else if(a==='del'){p.parts.splice(+v,1);res=null}
+  else if(a==='gr'){p.parts[+v].g=!p.parts[+v].g;res=null}
+  else if(a==='run'){calc();R();const r=$('#res');if(r)r.scrollIntoView({behavior:'smooth'});save();return}
+  else if(a==='z')zoom=+v;
+  else if(a==='pdf'){window.print();return}
+  else if(a==='xls'){xls();return}
+  else if(a==='cp'){const x=txt();(navigator.clipboard?navigator.clipboard.writeText(x):Promise.reject()).then(()=>{b.textContent=t('copied')}).catch(()=>{prompt('',x)});return}
+  else if(a==='np'){newP([]);G.tab='calc';res=null}
+  else if(a==='op'){G.cur=v;G.tab='calc';res=null}
+  else if(a==='dp'){const o=G.projects.find(x=>x.id===v),c=JSON.parse(JSON.stringify(o));c.id=uid();c.name+=' (2)';c.upd=Date.now();G.projects.unshift(c)}
+  else if(a==='xp'){if(pend===v){G.projects=G.projects.filter(x=>x.id!==v);if(!G.projects.length)newP();else if(G.cur===v)G.cur=G.projects[0].id;pend=null;res=null}else pend=v}
+  else if(a==='am')G.mats.push({id:uid(),name:'…',L:2750,W:1830,th:16,price:0,kerf:4,trim:10,color:'#c9a77c'});
+  else if(a==='dm'){if(G.mats.length>1){G.mats=G.mats.filter(x=>x.id!==v);res=null}}
+  save();R()});
+try{Telegram.WebApp.ready();Telegram.WebApp.expand()}catch(e){}
+R();
+</script></body></html>
